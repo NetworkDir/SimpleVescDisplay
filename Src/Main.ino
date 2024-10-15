@@ -113,14 +113,14 @@ void setup(void) {
   EEPROM_readAnything(EEPROM_MAGIC_VALUE, startup_total_km);
   if (isnan(startup_total_km)) {
     for (int i = 0; i <100; i++){
-			EEPROM_writeAnything(i,0);
-		}
-		EEPROM_writeAnything(EEPROM_MAGIC_VALUE,0.0);
-		tft.setCursor(40, 160);
-		tft.setTextFont(4);
-		tft.setTextDatum(MC_DATUM);
-		tft.setTextColor(TFT_RED, TFT_BLACK);
-		tft.print("SETUP EPROM...");
+	EEPROM_writeAnything(i,0);
+    }
+    EEPROM_writeAnything(EEPROM_MAGIC_VALUE,0.0);
+    tft.setCursor(40, 160);
+    tft.setTextFont(4);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.print("SETUP EPROM...");
     delay(1000);
     ESP.restart();
   }
