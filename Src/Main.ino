@@ -6,20 +6,21 @@
 
 // Global variables for tracking speed, distance, and motor data
 float trip;
-float startup_total_km; // Total kilometers read from EEPROM
-float last_total_km_stored; // Last stored kilometers in EEPROM
-float total_km; // Cumulative total kilometers traveled
-float tacho; // Tachometer reading
-float rpm; // Motor revolutions per minute
-float speed; // Calculated speed in km/h
+float startup_total_km;
+float last_total_km_stored;
+float total_km;
+float tacho;
+float rpm;
+float speed;
+float wheel_diameter;
 int maxspeed;
-char fmt[10]; // String formatting buffer
+char fmt[10];
 
 // Font settings for various display elements
-#define SPEEDFONT & JerseyM54_82pt7b // Large font for displaying speed
-#define DATAFONTSMALL2 & JerseyM54_14pt7b // Small font for other data values
-#define DATAFONTSMALL & JerseyM54_18pt7b // Alternative small font
-#define DATAFONTSMALLTEXT & Blockletter8pt7b // Font for smaller text labels
+#define SPEEDFONT &JerseyM54_82pt7b // Large font for displaying speed
+#define DATAFONTSMALL2 &JerseyM54_14pt7b // Small font for other data values
+#define DATAFONTSMALL &JerseyM54_18pt7b // Alternative small font
+#define DATAFONTSMALLTEXT &Blockletter8pt7b // Font for smaller text labels
 
 // Motor and wheel parameters for speed calculation
 #define MOTOR_POLES 30 // Number of motor poles (30 for typical E-scooters)
@@ -151,10 +152,10 @@ void setup(void) {
 void loop() {
   UART.getVescValues();
   tacho = (UART.data.tachometerAbs / (MOTOR_POLES * 3));
-  rpm = (UART.data.rpm / (MOTOR_POLES / 2));
+  rpm = (erpm / (MOTOR_POLES / 2));
   trip = tacho / 1000;
-  speed = (rpm * 60.0 * GEAR_RAITO) / ((WHEEL_DIAMETER_MM / 1000) * PI);
-
+  wheel_diameter = (PI * WHEEL_DIAMETER_MM / 1000);
+  speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
   //Main Speed
   int speedINT = _max(speed, 0);
   if (speedINT > HIGH_SPEED_WARNING) {
