@@ -152,7 +152,7 @@ void setup(void) {
 void loop() {
   UART.getVescValues();
   tacho = (UART.data.tachometerAbs / (MOTOR_POLES * 3));
-  rpm = (erpm / (MOTOR_POLES / 2));
+  rpm = (UART.data.rpm / (MOTOR_POLES / 2));
   trip = tacho / 1000;
   wheel_diameter = (PI * WHEEL_DIAMETER_MM / 1000);
   speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
