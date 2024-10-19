@@ -29,7 +29,7 @@ char fmt[10];
 #define PI 3.141592 // Pi constant
 #define SCONST 0.12 // Conversion factor from RPM to speed (km/h)
 
-#define RX2 22 // DISPLAY RX 22 TO VESC TX
+#define RXD2 22 // DISPLAY RX 22 TO VESC TX
 #define TXD2 27 // DISPLAY TX 27 TO VESC RX
 
 // User-configurable settings for warnings and thresholds
