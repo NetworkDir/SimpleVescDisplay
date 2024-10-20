@@ -51,7 +51,10 @@ int BATTERY_WARNING_COLOR = TFT_WHITE; // Color for battery voltage warnings
 #define BATTERY_WARNING_HIGH 84 // High voltage warning threshold (84V)
 #define BATTERY_WARNING_LOW 68 // Low voltage warning threshold (68V)
 
+int ERROR_WARNING_COLOR = TFT_WHITE; // Color for error warnings
+
 #define DO_LOGO_DRAW // Uncomment if you want enable startup logo and background logo [Currently disbaled version doesn't work so don't disable!]
+//#define DEBUG_MODE 
 
 #ifdef DO_LOGO_DRAW
 #include <PNGdec.h> // PNG decoder library
@@ -77,6 +80,7 @@ FlickerFreePrint<TFT_eSPI> Data6(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data7(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data8(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data9(&tft, TFT_WHITE, TFT_BLACK);
+FlickerFreePrint<TFT_eSPI> Data10(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data1t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data2t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data3t(&tft, TFT_WHITE, TFT_BLACK);
@@ -86,6 +90,7 @@ FlickerFreePrint<TFT_eSPI> Data6t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data7t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data8t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data9t(&tft, TFT_WHITE, TFT_BLACK);
+FlickerFreePrint<TFT_eSPI> Data10t(&tft, TFT_WHITE, TFT_BLACK);
 
 void pngDraw(PNGDRAW * pDraw) {
   uint16_t lineBuffer[MAX_IMAGE_WDITH];
@@ -103,9 +108,12 @@ void checkvalues() {
 }
 
 void setup(void) {
-  Serial.begin(115200); // Debug MicroUSB ?
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2); // VESC RX TX
   UART.setSerialPort(&Serial2);
+  #ifdef DEBUG_MODE
+  Serial.begin(115200); // Debug MicroUSB ?
+  UART.setDebugPort(&Serial);
+  #endif
   tft.begin();
   EEPROM.begin(100);
   tft.setRotation(3);
@@ -113,16 +121,16 @@ void setup(void) {
   UART.getVescValues();
   EEPROM_readAnything(EEPROM_MAGIC_VALUE, startup_total_km);
   if (isnan(startup_total_km)) {
-    for (int i = 0; i <100; i++){
-	EEPROM_writeAnything(i,0);
-    }
-    EEPROM_writeAnything(EEPROM_MAGIC_VALUE,0.0);
     tft.setCursor(40, 160);
     tft.setTextFont(4);
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_RED, TFT_BLACK);
     tft.print("SETUP EPROM...");
-    delay(1000);
+    for (int i = 0; i <100; i++){
+	    EEPROM_writeAnything(i,0);
+    }
+    EEPROM_writeAnything(EEPROM_MAGIC_VALUE,0.0);
+    delay(1500);
     ESP.restart();
   }
   last_total_km_stored = startup_total_km;
@@ -139,6 +147,7 @@ void setup(void) {
     rc_bg = png.decode(NULL, 0);
     tft.endWrite();
   }
+  png.close();
   delay(3000);
   tft.fillScreen(TFT_BLACK);
   int16_t rc_mainbg = png.openFLASH((uint8_t * ) background_image, sizeof(background_image), pngDraw);
@@ -147,6 +156,7 @@ void setup(void) {
     rc_mainbg = png.decode(NULL, 0);
     tft.endWrite();
   }
+  png.close();
   #endif
 }
 void loop() {
@@ -211,6 +221,22 @@ void loop() {
   Data4t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data4t.print("Battery");
 
+  if (UART.data.error > 0) {
+    ERROR_WARNING_COLOR = TFT_RED;
+  }else{
+    ERROR_WARNING_COLOR = TFT_GREEN;
+  }
+  tft.setFreeFont(DATAFONTSMALL2);
+  Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
+  tft.setCursor(8, 25);
+  dtostrf(UART.data.error, 2, 0, fmt);
+  Data10.print(fmt);
+
+  tft.setCursor(9, 30);
+  tft.setTextFont(1);
+  Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
+  Data10t.print("Error");
+
   //Motor-Phase Current
   tft.setCursor(270, 220);
   tft.setFreeFont(DATAFONTSMALL);
@@ -247,6 +273,7 @@ void loop() {
   tft.setFreeFont(DATAFONTSMALLTEXT);
   Data9t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data9t.print("ODOMETER");
+  
   delay(Screen_refresh_delay);
   checkvalues();
 }
