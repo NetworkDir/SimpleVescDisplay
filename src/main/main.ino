@@ -1,5 +1,5 @@
 #include <FlickerFreePrint.h> // Flicker-free printing to TFT
-#include <VescUart.h> // Communication with VESC controller
+#include <ComEVesc.h> // Communication with VESC controller
 #include <TFT_eSPI.h> // Hardware-specific library for TFT display
 #include <SPI.h>
 #include "EEPROMAnything.h" // Easy access to EEPROM storage
@@ -54,7 +54,7 @@ int BATTERY_WARNING_COLOR = TFT_WHITE; // Color for battery voltage warnings
 int ERROR_WARNING_COLOR = TFT_WHITE; // Color for error warnings
 
 #define DO_LOGO_DRAW // Uncomment if you want enable startup logo and background logo [Currently disbaled version doesn't work so don't disable!]
-//#define DEBUG_MODE 
+#define DEBUG_MODE 
 
 #ifdef DO_LOGO_DRAW
 #include <PNGdec.h> // PNG decoder library
@@ -68,7 +68,8 @@ int16_t ypos = 0; // Y position for image drawing
 
 // Other settings
 int Screen_refresh_delay = 50; // Delay between screen refreshes (ms)
-VescUart UART; // VESC UART instance
+ComEVesc UART; // VESC UART instance
+HardwareSerial VescSerial(1);
 
 TFT_eSPI tft = TFT_eSPI(); 
 FlickerFreePrint<TFT_eSPI> Data1(&tft, TFT_WHITE, TFT_BLACK);
@@ -108,8 +109,12 @@ void checkvalues() {
 }
 
 void setup(void) {
-  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2); // VESC RX TX
-  UART.setSerialPort(&Serial2);
+  VescSerial.begin(115200, SERIAL_8N1, RXD2, TXD2); // VESC RX TX
+  // Wait for the Serial port to be ready
+  while (!VescSerial) {
+    delay(10);
+  }
+  UART.setSerialPort(&VescSerial);
   #ifdef DEBUG_MODE
   Serial.begin(115200); // Debug MicroUSB ?
   UART.setDebugPort(&Serial);
