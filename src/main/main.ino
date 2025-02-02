@@ -24,7 +24,7 @@ char fmt[10];
 
 // Motor and wheel parameters for speed calculation
 #define MOTOR_POLES 30 // Number of motor poles (30 for typical E-scooters)
-#define WHEEL_DIAMETER_MM 253 // Diameter of the wheel in millimeters
+#define WHEEL_DIAMETER_MM 246 // Diameter of the wheel in millimeters
 #define GEAR_RAITO 1.0 // Motor pulley teeth count (1:1 gearing)
 #define PI 3.141592 // Pi constant
 #define SCONST 0.12 // Conversion factor from RPM to speed (km/h)
@@ -44,12 +44,13 @@ int COLOR_WARNING_TEMP_VESC = TFT_WHITE; // Color for VESC temperature warnings
 #define VESC_TEMP_WARNING2 80 // Second temperature warning threshold (80°C)
 
 int COLOR_WARNING_TEMP_MOTOR = TFT_WHITE; // Color for motor temperature warnings
-#define MOTOR_TEMP_WARNING1 50 // First motor temperature warning threshold (50°C)
-#define MOTOR_TEMP_WARNING2 80 // Second motor temperature warning threshold (80°C)
+#define MOTOR_TEMP_WARNING1 80 // First motor temperature warning threshold (80°C)
+#define MOTOR_TEMP_WARNING2 120 // Second motor temperature warning threshold (120°C)
 
 int BATTERY_WARNING_COLOR = TFT_WHITE; // Color for battery voltage warnings
-#define BATTERY_WARNING_HIGH 84 // High voltage warning threshold (84V)
-#define BATTERY_WARNING_LOW 68 // Low voltage warning threshold (68V)
+#define BATTERY_WARNING_HIGH 67.2 // High voltage warning threshold (67.2V)
+#define BATTERY_WARNING_LOW 54.4 // Low voltage warning threshold (54.4V)
+#define BATTERY_WARNING_0 48.0 // Voltage Cut warning treshold(48V)
 
 int ERROR_WARNING_COLOR = TFT_WHITE; // Color for error warnings
 
@@ -171,7 +172,9 @@ void loop() {
   trip = tacho / 1000;
   wheel_diameter = (PI * WHEEL_DIAMETER_MM / 1000);
   speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
-  //Main Speed
+
+  //Main Speed --------------------------------------------------------------------------
+
   int speedINT = _max(speed, 0);
   if (speedINT > HIGH_SPEED_WARNING) {
     COLOR_WARNING_SPEED = TFT_RED;
@@ -185,7 +188,8 @@ void loop() {
   Data1.setTextColor(COLOR_WARNING_SPEED, TFT_BLACK);
   Data1.print(speedINT);
 
-  //Vesc Temp
+  //Vesc Temp --------------------------------------------------------------------------
+
   if (UART.data.tempMosfet > VESC_TEMP_WARNING1) {
     COLOR_WARNING_TEMP_VESC = TFT_YELLOW;
   }
@@ -206,8 +210,11 @@ void loop() {
   Data2t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data2t.print("Vesc Temp");
   
-  //Battery Voltage
+  //Battery Voltage --------------------------------------------------------------------------
+
   if (UART.data.inpVoltage > BATTERY_WARNING_HIGH) {
+    BATTERY_WARNING_COLOR = TFT_RED;
+  } else if (UART.data.inpVoltage < BATTERY_WARNING_0) {
     BATTERY_WARNING_COLOR = TFT_RED;
   } else if (UART.data.inpVoltage < BATTERY_WARNING_LOW) {
     BATTERY_WARNING_COLOR = TFT_YELLOW;
@@ -217,14 +224,16 @@ void loop() {
 
   tft.setFreeFont(DATAFONTSMALL2);
   Data4.setTextColor(BATTERY_WARNING_COLOR, TFT_BLACK);
-  tft.setCursor(270, 25);
+  tft.setCursor(10, 25);
   dtostrf(UART.data.inpVoltage, 3, 1, fmt);
   Data4.print(fmt);
 
-  tft.setCursor(270, 30);
+  tft.setCursor(10, 30);
   tft.setTextFont(1);
   Data4t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data4t.print("Battery");
+
+    //error display --------------------------------------------------------------------------
 
   if (UART.data.error > 0) {
     ERROR_WARNING_COLOR = TFT_RED;
@@ -233,16 +242,17 @@ void loop() {
   }
   tft.setFreeFont(DATAFONTSMALL2);
   Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
-  tft.setCursor(8, 25);
+  tft.setCursor(270, 25);
   dtostrf(UART.data.error, 2, 0, fmt);
   Data10.print(fmt);
 
-  tft.setCursor(9, 30);
+  tft.setCursor(270, 30);
   tft.setTextFont(1);
   Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data10t.print("Error");
 
-  //Motor-Phase Current
+  //Motor-Phase Current --------------------------------------------------------------------------
+
   tft.setCursor(270, 220);
   tft.setFreeFont(DATAFONTSMALL);
   Data6.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -254,7 +264,8 @@ void loop() {
   Data6t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data6t.print("PHASE A");
   
-  //Battery Current
+  //Battery Current --------------------------------------------------------------------------
+
   tft.setCursor(220, 220);
   tft.setFreeFont(DATAFONTSMALL);
   Data7.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -266,7 +277,8 @@ void loop() {
   Data7t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data7t.print("BATT A");
 
-  //Odometer Text (TRIP)
+  //Odometer Text (TRIP) --------------------------------------------------------------------------
+
   tft.setCursor(125, 220);
   tft.setFreeFont(DATAFONTSMALL);
 
