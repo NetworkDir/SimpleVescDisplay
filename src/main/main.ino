@@ -233,23 +233,35 @@ void loop() {
   Data4t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data4t.print("Battery");
 
-    //error display --------------------------------------------------------------------------
-
-  if (UART.data.error > 0) {
-    ERROR_WARNING_COLOR = TFT_RED;
-  }else{
-    ERROR_WARNING_COLOR = TFT_GREEN;
-  }
-  tft.setFreeFont(DATAFONTSMALL2);
-  Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
-  tft.setCursor(270, 25);
-  dtostrf(UART.data.error, 2, 0, fmt);
-  Data10.print(fmt);
-
-  tft.setCursor(270, 30);
-  tft.setTextFont(1);
-  Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
-  Data10t.print("Error");
+    //Watt/Error display --------------------------------------------------------------------------
+			if (UART.data.error == 0){
+							tft.setFreeFont(DATAFONTSMALL2);
+							Data10.setTextColor(TFT_WHITE, TFT_BLACK);
+							tft.setCursor(270, 25);
+							dtostrf(UART.data.inpVoltage*UART.data.avgInputCurrent, 3, 0, fmt);
+							Data10.print(fmt);
+							
+							tft.setCursor	(270, 30);
+							tft.setTextFont(1);
+							Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
+							Data10t.print(Watts);
+			}else{ //	Error display when present
+  					if (UART.data.error > 0) {
+  						  ERROR_WARNING_COLOR = TFT_RED;
+  					}else{
+  						  ERROR_WARNING_COLOR = TFT_GREEN;
+  					}
+  					tft.setFreeFont(DATAFONTSMALL2);
+  					Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
+  					tft.setCursor(270, 25);
+  					dtostrf(UART.data.error, 2, 0, fmt);
+  					Data10.print(fmt);
+					
+  					tft.setCursor(270, 30);
+  					tft.setTextFont(1);
+  					Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
+  					Data10t.print("Error");
+			}
 
   //Motor-Phase Current --------------------------------------------------------------------------
 
