@@ -12,8 +12,10 @@ float total_km;
 float tacho;
 float rpm;
 float speed;
+float watts;
 float wheel_diameter;
 int maxspeed;
+int brightness = 255;
 char fmt[10];
 
 // Font settings for various display elements
@@ -29,8 +31,13 @@ char fmt[10];
 #define PI 3.141592 // Pi constant
 #define SCONST 0.12 // Conversion factor from RPM to speed (km/h)
 
+// Pin configs for the hardware
+
 #define RXD2 22 // DISPLAY RX 22 TO VESC TX
 #define TXD2 27 // DISPLAY TX 27 TO VESC RX
+
+#define LDR_PIN 34 // Light Detecting Resistor that sits on top right of the display
+#define LCD_BACK_LIGHT_PIN 21
 
 // User-configurable settings for warnings and thresholds
 int EEPROM_MAGIC_VALUE = 0; // EEPROM magic value to track saved data
@@ -72,6 +79,7 @@ int Screen_refresh_delay = 50; // Delay between screen refreshes (ms)
 ComEVesc UART; // VESC UART instance
 HardwareSerial VescSerial(1);
 
+
 TFT_eSPI tft = TFT_eSPI(); 
 FlickerFreePrint<TFT_eSPI> Data1(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data2(&tft, TFT_WHITE, TFT_BLACK);
@@ -83,6 +91,7 @@ FlickerFreePrint<TFT_eSPI> Data7(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data8(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data9(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data10(&tft, TFT_WHITE, TFT_BLACK);
+FlickerFreePrint<TFT_eSPI> Data11(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data1t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data2t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data3t(&tft, TFT_WHITE, TFT_BLACK);
@@ -93,6 +102,7 @@ FlickerFreePrint<TFT_eSPI> Data7t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data8t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data9t(&tft, TFT_WHITE, TFT_BLACK);
 FlickerFreePrint<TFT_eSPI> Data10t(&tft, TFT_WHITE, TFT_BLACK);
+FlickerFreePrint<TFT_eSPI> Data11t(&tft, TFT_WHITE, TFT_BLACK);
 
 void pngDraw(PNGDRAW * pDraw) {
   uint16_t lineBuffer[MAX_IMAGE_WDITH];
@@ -172,7 +182,13 @@ void loop() {
   trip = tacho / 1000;
   wheel_diameter = (PI * WHEEL_DIAMETER_MM / 1000);
   speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
+  watts = UART.data.inpVoltage*UART.data.avgInputCurrent;
 
+  //unsigned long now = millis(); // millis() returns how many milliseconds since the program started running
+  int sensorValue = analogRead(LDR_PIN);
+  brightness = map(sensorValue, 0, 800, 255, 0);
+  //ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
+  analogWrite(LCD_BACK_LIGHT_PIN, brightness);
   //Main Speed --------------------------------------------------------------------------
 
   int speedINT = _max(speed, 0);
@@ -198,18 +214,40 @@ void loop() {
   } else {
     COLOR_WARNING_TEMP_VESC = TFT_GREEN;
   }
-  
-  tft.setCursor(20, 220);
-  tft.setFreeFont(DATAFONTSMALL);
-  Data2.setTextColor(COLOR_WARNING_TEMP_VESC, TFT_BLACK);
-  dtostrf(UART.data.tempMosfet, 3, 0, fmt);
-  Data2.print(fmt);
 
-  tft.setCursor(15, 235);
-  tft.setFreeFont(DATAFONTSMALLTEXT);
-  Data2t.setTextColor(TFT_WHITE, TFT_BLACK);
-  Data2t.print("Vesc Temp");
+    tft.setCursor(5, 220);
+    tft.setFreeFont(DATAFONTSMALL);
+    Data2.setTextColor(COLOR_WARNING_TEMP_VESC, TFT_BLACK);
+    dtostrf(UART.data.tempMosfet, 3, 0, fmt);
+    Data2.print(fmt);
+
+    tft.setCursor(15, 235);
+    tft.setFreeFont(DATAFONTSMALLTEXT);
+    Data2t.setTextColor(TFT_WHITE, TFT_BLACK);
+    Data2t.print("VescT"); 
   
+  //Motor Temp --------------------------------------------------------------------------
+
+  if (UART.data.tempMotor > MOTOR_TEMP_WARNING1) {
+    COLOR_WARNING_TEMP_MOTOR = TFT_YELLOW;
+  }
+  if (UART.data.tempMotor > MOTOR_TEMP_WARNING2) {
+    COLOR_WARNING_TEMP_MOTOR = TFT_RED;
+  } else {
+    COLOR_WARNING_TEMP_MOTOR = TFT_GREEN;
+  }
+  
+    tft.setCursor(65, 220);
+    tft.setFreeFont(DATAFONTSMALL);
+    Data11.setTextColor(COLOR_WARNING_TEMP_MOTOR, TFT_BLACK);
+    dtostrf(UART.data.tempMotor, 3, 0, fmt);
+    Data11.print(fmt);
+
+    tft.setCursor(65, 235);
+    tft.setFreeFont(DATAFONTSMALLTEXT);
+    Data11t.setTextColor(TFT_WHITE, TFT_BLACK);
+    Data11t.print("MotorT"); 
+
   //Battery Voltage --------------------------------------------------------------------------
 
   if (UART.data.inpVoltage > BATTERY_WARNING_HIGH) {
@@ -234,34 +272,35 @@ void loop() {
   Data4t.print("Battery");
 
     //Watt/Error display --------------------------------------------------------------------------
-			if (UART.data.error == 0){
-							tft.setFreeFont(DATAFONTSMALL2);
-							Data10.setTextColor(TFT_WHITE, TFT_BLACK);
-							tft.setCursor(270, 25);
-							dtostrf(UART.data.inpVoltage*UART.data.avgInputCurrent, 3, 0, fmt);
-							Data10.print(fmt);
-							
-							tft.setCursor	(270, 30);
-							tft.setTextFont(1);
-							Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
-							Data10t.print(Watts);
-			}else{ //	Error display when present
-  					if (UART.data.error > 0) {
-  						  ERROR_WARNING_COLOR = TFT_RED;
-  					}else{
-  						  ERROR_WARNING_COLOR = TFT_GREEN;
-  					}
-  					tft.setFreeFont(DATAFONTSMALL2);
-  					Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
-  					tft.setCursor(270, 25);
-  					dtostrf(UART.data.error, 2, 0, fmt);
-  					Data10.print(fmt);
-					
-  					tft.setCursor(270, 30);
-  					tft.setTextFont(1);
-  					Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
-  					Data10t.print("Error");
-			}
+
+  if (UART.data.error == 0){ // Display Watts when no error(0)
+	  tft.setFreeFont(DATAFONTSMALL2);
+	  Data10.setTextColor(TFT_WHITE, TFT_BLACK);
+	  tft.setCursor(270, 25);
+	  dtostrf(watts, 3, 0, fmt);
+	  Data10.print(fmt);
+	
+	  tft.setCursor	(270, 30);
+	  tft.setTextFont(1);
+	  Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
+	  Data10t.print("Watts");
+  }else{ //	Error display when present
+	  if (UART.data.error > 0) {
+	  	ERROR_WARNING_COLOR = TFT_RED;
+	  }else{
+	    ERROR_WARNING_COLOR = TFT_GREEN;
+	  }
+	  tft.setFreeFont(DATAFONTSMALL2);
+	  Data10.setTextColor(ERROR_WARNING_COLOR, TFT_BLACK);
+	  tft.setCursor(270, 25);
+	  dtostrf(UART.data.error, 2, 0, fmt);
+	  Data10.print(fmt);
+				
+	  tft.setCursor(270, 30);
+	  tft.setTextFont(1);
+	  Data10t.setTextColor(TFT_WHITE, TFT_BLACK);
+	  Data10t.print("Error");
+  }
 
   //Motor-Phase Current --------------------------------------------------------------------------
 
@@ -291,14 +330,14 @@ void loop() {
 
   //Odometer Text (TRIP) --------------------------------------------------------------------------
 
-  tft.setCursor(125, 220);
+  tft.setCursor(145, 220);
   tft.setFreeFont(DATAFONTSMALL);
 
   Data9.setTextColor(TFT_WHITE, TFT_BLACK);
   dtostrf(total_km, 3, 1, fmt);
   Data9.print(fmt);
 
-  tft.setCursor(125, 235);
+  tft.setCursor(135, 235);
   tft.setFreeFont(DATAFONTSMALLTEXT);
   Data9t.setTextColor(TFT_WHITE, TFT_BLACK);
   Data9t.print("ODOMETER");
