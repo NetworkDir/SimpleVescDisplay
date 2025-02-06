@@ -10,21 +10,14 @@ This is a modified version of the VESC display project, optimized for the **ESP3
 
 ## ✨ Features
 
-✅ Real-time speed, RPM, and power display
-
-✅ Optimized data calculations similar to VESC Tool
-
-✅ Trip and total distance tracking
-
-✅ EEPROM storage for trip data
-
-✅ Automatic brightness control using LDR sensor
-
-✅ High-speed UART communication with VESC
-
-✅ Overheating and battery warnings
-
-✅ PNG image support for custom UI background and startup logo
+✅ Real-time speed, RPM, and power display  
+✅ Optimized data calculations similar to VESC Tool  
+✅ Trip and total distance tracking  
+✅ EEPROM storage for trip data  
+✅ Automatic brightness control using LDR sensor  
+✅ High-speed UART communication with VESC  
+✅ Overheating and battery warnings  
+✅ PNG image support for custom UI background and startup logo  
 
 ## 📥 Installation
 
@@ -64,8 +57,8 @@ Before compiling, you may need to tweak some settings (if you install tft_espi b
 
 🔹 More UI customization options (with new library instead as tft_espi :D) 🎨  
 🔹 BLE and WiFi bridge 🌐  
-🔹 Improved data logging & visualization 📊
-🔹 Add CANBUS support for better and reliable communication
+🔹 Improved data logging & visualization 📊  
+🔹 Add CANBUS support for better and reliable communication  
 
 ## 🤝 Contributing
 
