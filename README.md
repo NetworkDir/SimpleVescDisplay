@@ -11,12 +11,19 @@ This is a modified version of the VESC display project, optimized for the **ESP3
 ## ✨ Features
 
 ✅ Real-time speed, RPM, and power display
+
 ✅ Optimized data calculations similar to VESC Tool
+
 ✅ Trip and total distance tracking
+
 ✅ EEPROM storage for trip data
+
 ✅ Automatic brightness control using LDR sensor
+
 ✅ High-speed UART communication with VESC
+
 ✅ Overheating and battery warnings
+
 ✅ PNG image support for custom UI background and startup logo
 
 ## 📥 Installation
