@@ -6,7 +6,7 @@ This is a modified version of the VESC display project, optimized for the **ESP3
 
 ## 🎨 Demo
 
-![Demo Image](./imgs/demo.jpg)
+<img src="./imgs/demo.jpg" alt="Demo Image" style="width: 50%; border-radius: 10px;">
 
 ## ✨ Features
 
