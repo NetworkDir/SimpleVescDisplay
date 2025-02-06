@@ -62,7 +62,7 @@ int BATTERY_WARNING_COLOR = TFT_WHITE; // Color for battery voltage warnings
 int ERROR_WARNING_COLOR = TFT_WHITE; // Color for error warnings
 
 #define DO_LOGO_DRAW // Uncomment if you want enable startup logo and background logo [Currently disbaled version doesn't work so don't disable!]
-#define DEBUG_MODE 
+#define DEBUG_MODE
 
 #ifdef DO_LOGO_DRAW
 #include <PNGdec.h> // PNG decoder library
@@ -132,7 +132,7 @@ void setup(void) {
   #endif
   tft.begin();
   EEPROM.begin(100);
-  tft.setRotation(3);
+  tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
   UART.getVescValues();
   EEPROM_readAnything(EEPROM_MAGIC_VALUE, startup_total_km);
@@ -183,12 +183,11 @@ void loop() {
   wheel_diameter = (PI * WHEEL_DIAMETER_MM / 1000);
   speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
   watts = UART.data.inpVoltage*UART.data.avgInputCurrent;
-
-  //unsigned long now = millis(); // millis() returns how many milliseconds since the program started running
   int sensorValue = analogRead(LDR_PIN);
-  brightness = map(sensorValue, 0, 800, 255, 0);
-  //ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
+  brightness = map(sensorValue, 0, 1000, 255, 5);
+  if(brightness  <= 5){brightness=5;} //stupid map function gets destroyed when input value goes over specified 
   analogWrite(LCD_BACK_LIGHT_PIN, brightness);
+
   //Main Speed --------------------------------------------------------------------------
 
   int speedINT = _max(speed, 0);
