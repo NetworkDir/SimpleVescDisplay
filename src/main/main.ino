@@ -18,6 +18,9 @@ int maxspeed;
 int brightness = 255;
 char fmt[10];
 
+// Per-mode power settings
+float SCurrent = 0;
+
 // Font settings for various display elements
 #define SPEEDFONT &JerseyM54_82pt7b // Large font for displaying speed
 #define DATAFONTSMALL2 &JerseyM54_14pt7b // Small font for other data values
@@ -184,8 +187,9 @@ void loop() {
   speed = ((rpm * wheel_diameter * GEAR_RAITO) / 1000) * 60;
   watts = UART.data.inpVoltage*UART.data.avgInputCurrent;
   int sensorValue = analogRead(LDR_PIN);
-  brightness = map(sensorValue, 0, 1000, 255, 5);
-  if(brightness  <= 5){brightness=5;} //stupid map function gets destroyed when input value goes over specified 
+  if(sensorValue <= 200){sensorValue = 200;}
+  brightness = map(sensorValue, 200, 1000, 255, 25);
+  if(brightness <= 25){brightness=25;} //stupid map function gets destroyed when input value goes over specified 
   analogWrite(LCD_BACK_LIGHT_PIN, brightness);
 
   //Main Speed --------------------------------------------------------------------------
@@ -275,8 +279,8 @@ void loop() {
   if (UART.data.error == 0){ // Display Watts when no error(0)
 	  tft.setFreeFont(DATAFONTSMALL2);
 	  Data10.setTextColor(TFT_WHITE, TFT_BLACK);
-	  tft.setCursor(270, 25);
-	  dtostrf(watts, 3, 0, fmt);
+	  tft.setCursor(260, 25);
+	  dtostrf(watts, 5, 0, fmt);
 	  Data10.print(fmt);
 	
 	  tft.setCursor	(270, 30);
@@ -306,7 +310,7 @@ void loop() {
   tft.setCursor(270, 220);
   tft.setFreeFont(DATAFONTSMALL);
   Data6.setTextColor(TFT_GREEN, TFT_BLACK);
-  dtostrf(UART.data.avgMotorCurrent, 2, 0, fmt);
+  dtostrf(UART.data.avgMotorCurrent, 3, 0, fmt);
   Data6.print(fmt);
 
   tft.setCursor(265, 235);
@@ -319,7 +323,7 @@ void loop() {
   tft.setCursor(220, 220);
   tft.setFreeFont(DATAFONTSMALL);
   Data7.setTextColor(TFT_GREEN, TFT_BLACK);
-  dtostrf(UART.data.avgInputCurrent, 2, 0, fmt);
+  dtostrf(UART.data.avgInputCurrent, 3, 0, fmt);
   Data7.print(fmt);
 
   tft.setCursor(215, 235);
@@ -333,7 +337,7 @@ void loop() {
   tft.setFreeFont(DATAFONTSMALL);
 
   Data9.setTextColor(TFT_WHITE, TFT_BLACK);
-  dtostrf(total_km, 3, 1, fmt);
+  dtostrf(total_km, 4, 0, fmt);
   Data9.print(fmt);
 
   tft.setCursor(135, 235);
