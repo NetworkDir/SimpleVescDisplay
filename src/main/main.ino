@@ -18,8 +18,6 @@ int maxspeed;
 int brightness = 255;
 char fmt[10];
 
-// Per-mode power settings
-float SCurrent = 0;
 
 // Font settings for various display elements
 #define SPEEDFONT &JerseyM54_82pt7b // Large font for displaying speed
