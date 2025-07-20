@@ -42,7 +42,7 @@ Follow these steps to set up the project on your ESP32-2432S028:
   - **EEPROMAnything** (for EEPROM read/write support)
 
 ### 3️⃣ Flash the Code to ESP32
-- Open the `vesc_display.ino` file in **Arduino IDE**.
+- Open the `main/main.ino` file in **Arduino IDE**.
 - Select the correct board: **ESP32 Dev Module**.
 - Set the correct **COM Port**.
 - Click **Upload** and wait for the process to complete.
