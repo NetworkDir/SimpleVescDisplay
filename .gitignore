@@ -1,0 +1,6 @@
+.pio/
+.vscode/
+build/
+release/
+*.elf
+*.map
